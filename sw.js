@@ -1,4 +1,4 @@
-const CACHE_NAME = 'v3'; // 🔁 CHANGE THIS EVERY TIME (v2, v3...)
+const CACHE_NAME = 'v4'; // 🔁 CHANGE THIS EVERY TIME (v2, v3...)
 
 const ASSETS = [
   './',
