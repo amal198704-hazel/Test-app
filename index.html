@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My PWA</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 40px;
+}
+
+/* POPUP BASE */
+.popup {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%) translateY(100px);
+  background: #111;
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  transition: 0.3s ease;
+  opacity: 0;
+}
+
+.popup.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* BUTTON */
+.popup button {
+  background: #25D366;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Version 1</h1>
+
+<!-- INSTALL POPUP -->
+<div id="installPopup" class="popup">
+  <span>Install this app</span>
+  <button id="installBtn">Install</button>
+</div>
+
+<!-- UPDATE POPUP -->
+<div id="updatePopup" class="popup">
+  <span>New version available</span>
+  <button id="updateBtn">Update</button>
+</div>
+
+<script>
+let deferredPrompt;
+
+// INSTALL POPUP
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installPopup.classList.add('show');
+});
+
+installBtn.onclick = async () => {
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  installPopup.classList.remove('show');
+};
+
+// SERVICE WORKER
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+
+    reg.onupdatefound = () => {
+      const newWorker = reg.installing;
+
+      newWorker.onstatechange = () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          updatePopup.classList.add('show');
+        }
+      };
+    };
+  });
+
+  // RELOAD AFTER UPDATE
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
+
+// UPDATE BUTTON
+updateBtn.onclick = () => {
+  navigator.serviceWorker.getRegistration().then((reg) => {
+    reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+  });
+};
+</script>
+
+</body>
+</html>
